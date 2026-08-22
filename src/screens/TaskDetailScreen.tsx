@@ -29,7 +29,7 @@ export default function TaskDetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadTask();
+    void loadTask();
   }, [taskId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadTask() {
@@ -63,7 +63,10 @@ export default function TaskDetailScreen() {
         }}
       >
         <Text style={{ color: colors.error }}>{error || 'Task not found'}</Text>
-        <TouchableOpacity onPress={loadTask} style={{ marginTop: spacing.md }}>
+        <TouchableOpacity
+          onPress={() => void loadTask()}
+          style={{ marginTop: spacing.md }}
+        >
           <Text style={{ color: colors.primary }}>Try Again</Text>
         </TouchableOpacity>
       </View>

@@ -13,13 +13,13 @@ const zustandMMKVStorage = {
 /** Must match the page size used by useTaskFeed when fetching tasks. */
 export const TASK_PAGE_SIZE = 20;
 
-export type PersistedTaskSlice = {
+export interface PersistedTaskSlice {
   tasks: Task[];
   selectedTask: Task | null;
   selectedAt: string | null;
   page: number;
   hasMore: boolean;
-};
+}
 
 interface TaskState {
   tasks: Task[];

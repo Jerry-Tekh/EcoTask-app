@@ -62,7 +62,7 @@ function mountHook(
     return null;
   }
   let tree: renderer.ReactTestRenderer;
-  act(() => {
+  void act(() => {
     tree = renderer.create(<TestComponent />);
   });
   return {
@@ -220,7 +220,8 @@ describe('useProofStatus', () => {
   it('pauses polling while offline and resumes on reconnect', async () => {
     // Start offline — NetInfo.fetch resolves immediately as disconnected.
     (NetInfo.fetch as jest.Mock).mockResolvedValue({ isConnected: false });
-    let netInfoListener: ((state: any) => void) | null = null;
+    let netInfoListener: ((state: { isConnected: boolean }) => void) | null =
+      null;
     (NetInfo.addEventListener as jest.Mock).mockImplementation(cb => {
       cb({ isConnected: false });
       netInfoListener = cb;
@@ -289,7 +290,7 @@ describe('useProofStatus', () => {
       rewardToken: 'ECO',
     });
 
-    unmount();
+    void unmount();
 
     // After unmount, advancing timers should not trigger further API calls.
     await act(async () => {

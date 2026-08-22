@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-
 import { colors, spacing } from '../utils/theme';
 import ImpactStats from '../components/ImpactStats';
 import StreakCard from '../components/StreakCard';
@@ -162,7 +161,7 @@ export default function HomeScreen() {
         <PendingProofsBanner
           count={pendingCount}
           isSyncing={isSubmitting}
-          onRetry={syncPendingProofs}
+          onRetry={() => void syncPendingProofs()}
         />
 
         <View style={{ marginTop: spacing.xl }}>

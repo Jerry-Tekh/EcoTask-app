@@ -56,7 +56,7 @@ export default function SubmitProofScreen() {
 
   useEffect(() => {
     if (!hasPermission) {
-      requestPermission();
+      void requestPermission();
     }
   }, [hasPermission, requestPermission]);
 
@@ -70,8 +70,11 @@ export default function SubmitProofScreen() {
       });
       setPhotoUri(`file://${photo.path}`);
       setCapturedAt(new Date().toISOString());
-    } catch (err: any) {
-      Alert.alert('Camera Error', err.message || 'Failed to capture photo');
+    } catch (err) {
+      Alert.alert(
+        'Camera Error',
+        err instanceof Error ? err.message : 'Failed to capture photo',
+      );
     }
   }, []);
 
@@ -130,7 +133,7 @@ export default function SubmitProofScreen() {
         const token = result.rewardToken || route.params.rewardToken || 'ECO';
         const title =
           result.taskTitle || route.params.taskTitle || 'Task Completed';
-        scheduleLocalNotification({
+        void scheduleLocalNotification({
           title: 'Reward confirmed! 🎉',
           body: `You earned ${amount} ${token} for "${title}".`,
           type: NOTIFICATION_TYPES.REWARD_CONFIRMED,
@@ -249,7 +252,7 @@ export default function SubmitProofScreen() {
             </Text>
             {hasPermission === false && (
               <TouchableOpacity
-                onPress={requestPermission}
+                onPress={() => void requestPermission()}
                 style={{ marginTop: spacing.md, padding: spacing.sm }}
               >
                 <Text style={{ color: colors.primary }}>Grant Permission</Text>
@@ -317,7 +320,7 @@ export default function SubmitProofScreen() {
       >
         {!photoUri ? (
           <TouchableOpacity
-            onPress={handleCapture}
+            onPress={() => void handleCapture()}
             disabled={isSubmitting}
             style={{
               flex: 1,
@@ -357,7 +360,7 @@ export default function SubmitProofScreen() {
               <Text style={{ color: colors.text }}>Retake</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={handleSubmit}
+              onPress={() => void handleSubmit()}
               disabled={isSubmitting}
               style={{
                 flex: 1,

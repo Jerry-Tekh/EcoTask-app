@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-
 import { useWalletStore } from '../store/walletStore';
 import { useStellarWallet } from '../hooks/useStellarWallet';
 import { colors, spacing } from '../utils/theme';
@@ -18,7 +17,7 @@ export default function WalletScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    refreshBalance().finally(() => setLoading(false));
+    void refreshBalance().finally(() => setLoading(false));
   }, [refreshBalance]);
 
   if (!isConnected) {

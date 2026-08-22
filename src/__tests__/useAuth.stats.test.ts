@@ -37,8 +37,14 @@ function successResponse(data: unknown, config: unknown) {
   return { data, status: 200, statusText: 'OK', headers: {}, config };
 }
 
+interface MockAxiosConfig {
+  url?: string;
+  headers?: Record<string, string>;
+  [key: string]: unknown;
+}
+
 const adapter = jest.fn();
-api.defaults.adapter = adapter as any;
+api.defaults.adapter = adapter as unknown as typeof api.defaults.adapter;
 
 function mockEndpoints({
   loginUser = { id: 'u1', name: 'Ada' },
@@ -49,7 +55,7 @@ function mockEndpoints({
   meResponse?: unknown;
   meFails?: boolean;
 } = {}) {
-  adapter.mockImplementation(async (config: any) => {
+  adapter.mockImplementation(async (config: MockAxiosConfig) => {
     if (config.url === '/auth/challenge') {
       return successResponse({ challenge: 'challenge-xdr' }, config);
     }
@@ -90,7 +96,7 @@ describe('useAuth stat handling', () => {
       balance: null,
       ecoBalance: null,
       walletType: null,
-    } as any);
+    });
     useWalletStore.getState().connect('GCKEY');
     mockedGetInAppSecret.mockReturnValue('Ssecret123');
     mockedSignChallengeXDR.mockReturnValue('signed-xdr');

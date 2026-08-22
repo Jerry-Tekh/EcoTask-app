@@ -86,91 +86,93 @@ export function useProofStatus(
     (currentProofId: string, delayMs: number) => {
       cancelTimer();
 
-      timerRef.current = setTimeout(async () => {
-        if (!mountedRef.current || !isRunningRef.current) {
-          return;
-        }
-
-        // Pause while offline; reschedule with normal back-off once back.
-        if (!isInitialisedRef.current || !isConnectedRef.current) {
-          const nextInterval = Math.min(
-            intervalRef.current * BACKOFF_FACTOR,
-            MAX_INTERVAL_MS,
-          );
-          intervalRef.current = nextInterval;
-          schedulePoll(currentProofId, nextInterval);
-          return;
-        }
-
-        // Hard 10-minute timeout.
-        if (Date.now() - startedAtRef.current >= TIMEOUT_MS) {
-          updateActivityStatus(activityId, 'failed');
-          scheduleLocalNotification({
-            title: 'Proof verification timed out',
-            body: 'Proof verification timed out. Please check your submission status.',
-            type: NOTIFICATION_TYPES.PROOF_TIMEOUT,
-            data: {
-              type: NOTIFICATION_TYPES.PROOF_TIMEOUT,
-              proofId: currentProofId,
-              activityId,
-              deepLink: 'ecotask://wallet',
-            },
-          });
-          stopPolling();
-          return;
-        }
-
-        try {
-          const response = await fetchProofStatus(currentProofId);
-
+      timerRef.current = setTimeout(() => {
+        void (async () => {
           if (!mountedRef.current || !isRunningRef.current) {
             return;
           }
 
-          if (TERMINAL_STATUSES.has(response.status)) {
-            updateActivityStatus(
-              activityId,
-              response.status,
-              response.rewardAmount,
+          // Pause while offline; reschedule with normal back-off once back.
+          if (!isInitialisedRef.current || !isConnectedRef.current) {
+            const nextInterval = Math.min(
+              intervalRef.current * BACKOFF_FACTOR,
+              MAX_INTERVAL_MS,
             );
+            intervalRef.current = nextInterval;
+            schedulePoll(currentProofId, nextInterval);
+            return;
+          }
 
-            if (response.status === 'confirmed') {
-              const amount = response.rewardAmount ?? 0;
-              scheduleLocalNotification({
-                title: 'Reward confirmed! 🎉',
-                body: `You earned ${amount} ${rewardToken} for "${taskTitle}".`,
-                type: NOTIFICATION_TYPES.REWARD_CONFIRMED,
-                data: {
-                  type: NOTIFICATION_TYPES.REWARD_CONFIRMED,
-                  proofId: currentProofId,
-                  activityId,
-                },
-              });
-            }
-
+          // Hard 10-minute timeout.
+          if (Date.now() - startedAtRef.current >= TIMEOUT_MS) {
+            updateActivityStatus(activityId, 'failed');
+            void scheduleLocalNotification({
+              title: 'Proof verification timed out',
+              body: 'Proof verification timed out. Please check your submission status.',
+              type: NOTIFICATION_TYPES.PROOF_TIMEOUT,
+              data: {
+                type: NOTIFICATION_TYPES.PROOF_TIMEOUT,
+                proofId: currentProofId,
+                activityId,
+                deepLink: 'ecotask://wallet',
+              },
+            });
             stopPolling();
             return;
           }
 
-          // Still pending — schedule the next poll with back-off.
-          const nextInterval = Math.min(
-            intervalRef.current * BACKOFF_FACTOR,
-            MAX_INTERVAL_MS,
-          );
-          intervalRef.current = nextInterval;
-          schedulePoll(currentProofId, nextInterval);
-        } catch {
-          // Network or server error: back off and retry unless timed out.
-          if (!mountedRef.current || !isRunningRef.current) {
-            return;
+          try {
+            const response = await fetchProofStatus(currentProofId);
+
+            if (!mountedRef.current || !isRunningRef.current) {
+              return;
+            }
+
+            if (TERMINAL_STATUSES.has(response.status)) {
+              updateActivityStatus(
+                activityId,
+                response.status,
+                response.rewardAmount,
+              );
+
+              if (response.status === 'confirmed') {
+                const amount = response.rewardAmount ?? 0;
+                void scheduleLocalNotification({
+                  title: 'Reward confirmed! 🎉',
+                  body: `You earned ${amount} ${rewardToken} for "${taskTitle}".`,
+                  type: NOTIFICATION_TYPES.REWARD_CONFIRMED,
+                  data: {
+                    type: NOTIFICATION_TYPES.REWARD_CONFIRMED,
+                    proofId: currentProofId,
+                    activityId,
+                  },
+                });
+              }
+
+              stopPolling();
+              return;
+            }
+
+            // Still pending — schedule the next poll with back-off.
+            const nextInterval = Math.min(
+              intervalRef.current * BACKOFF_FACTOR,
+              MAX_INTERVAL_MS,
+            );
+            intervalRef.current = nextInterval;
+            schedulePoll(currentProofId, nextInterval);
+          } catch {
+            // Network or server error: back off and retry unless timed out.
+            if (!mountedRef.current || !isRunningRef.current) {
+              return;
+            }
+            const nextInterval = Math.min(
+              intervalRef.current * BACKOFF_FACTOR,
+              MAX_INTERVAL_MS,
+            );
+            intervalRef.current = nextInterval;
+            schedulePoll(currentProofId, nextInterval);
           }
-          const nextInterval = Math.min(
-            intervalRef.current * BACKOFF_FACTOR,
-            MAX_INTERVAL_MS,
-          );
-          intervalRef.current = nextInterval;
-          schedulePoll(currentProofId, nextInterval);
-        }
+        })();
       }, delayMs);
     },
 

@@ -1,25 +1,38 @@
-import React from 'react';
+import React, {
+  forwardRef as mockForwardRef,
+  useImperativeHandle as mockUseImperativeHandle,
+} from 'react';
+import { View as MockView } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 
-jest.mock('react-native-maps', () => {
-  const MockReact = require('react');
-  const { View } = require('react-native');
+interface MockMapViewRef {
+  animateToRegion: (region: unknown, duration?: number) => void;
+}
 
-  const MapView = MockReact.forwardRef(
-    (
-      props: {
-        children?: React.ReactNode;
-        testID?: string;
-        onRegionChangeComplete?: (region: any) => void;
-      },
-      ref: React.Ref<any>,
-    ) => {
-      MockReact.useImperativeHandle(ref, () => ({
-        animateToRegion: jest.fn(),
-      }));
-      return <View testID={props.testID ?? 'map-view'}>{props.children}</View>;
-    },
-  );
+interface MockMarkerProps {
+  children?: React.ReactNode;
+  testID?: string;
+  title?: string;
+  description?: string;
+  onCalloutPress?: () => void;
+}
+
+jest.mock('react-native-maps', () => {
+  const MapView = mockForwardRef<
+    MockMapViewRef,
+    {
+      children?: React.ReactNode;
+      testID?: string;
+      onRegionChangeComplete?: (region: unknown) => void;
+    }
+  >((props, ref) => {
+    mockUseImperativeHandle(ref, () => ({
+      animateToRegion: jest.fn(),
+    }));
+    return (
+      <MockView testID={props.testID ?? 'map-view'}>{props.children}</MockView>
+    );
+  });
 
   const Marker = ({
     children,
@@ -27,10 +40,10 @@ jest.mock('react-native-maps', () => {
     title,
     description,
     onCalloutPress,
-  }: any) => (
-    <View testID={testID}>
+  }: MockMarkerProps) => (
+    <MockView testID={testID}>
       {children}
-      <View
+      <MockView
         testID={`callout-${testID}`}
         accessible
         accessibilityRole="button"
@@ -39,12 +52,14 @@ jest.mock('react-native-maps', () => {
           return false;
         }}
       />
-      <View testID={`callout-title-${testID}`}>{title}</View>
-      <View testID={`callout-desc-${testID}`}>{description}</View>
-    </View>
+      <MockView testID={`callout-title-${testID}`}>{title}</MockView>
+      <MockView testID={`callout-desc-${testID}`}>{description}</MockView>
+    </MockView>
   );
 
-  const Circle = ({ testID }: any) => <View testID={testID ?? 'circle'} />;
+  const Circle = ({ testID }: { testID?: string }) => (
+    <MockView testID={testID ?? 'circle'} />
+  );
 
   return {
     __esModule: true,

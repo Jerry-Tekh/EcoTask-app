@@ -34,25 +34,25 @@ const createInAppWallet = jest.fn();
 const importWallet = jest.fn();
 const authenticate = jest.fn();
 
-type WalletHookState = {
+interface WalletHookState {
   connectFreighter: jest.Mock;
   connectLobstr: jest.Mock;
   createInAppWallet: jest.Mock;
   importWallet: jest.Mock;
   isConnecting: boolean;
   error: string | null;
-};
+}
 
-type AuthHookState = {
+interface AuthHookState {
   authenticate: jest.Mock;
   isAuthenticating: boolean;
   error: string | null;
-};
+}
 
-type WalletStoreState = {
+interface WalletStoreState {
   publicKey: string | null;
   isConnected: boolean;
-};
+}
 
 let walletHookState: WalletHookState;
 let authHookState: AuthHookState;
@@ -126,7 +126,7 @@ describe('OnboardingScreen', () => {
     authenticate.mockResolvedValue(undefined);
     createInAppWallet.mockResolvedValue(undefined);
     importWallet.mockResolvedValue(undefined);
-    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
   });
 
   afterEach(() => {

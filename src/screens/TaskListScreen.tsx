@@ -8,7 +8,6 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
-
 import { colors, spacing } from '../utils/theme';
 import { useTaskFeed } from '../hooks/useTaskFeed';
 import { useLocation } from '../hooks/useLocation';
@@ -123,7 +122,10 @@ export default function TaskListScreen() {
         }}
       >
         <Text style={{ color: colors.error }}>{error}</Text>
-        <TouchableOpacity onPress={refresh} style={{ marginTop: spacing.md }}>
+        <TouchableOpacity
+          onPress={() => void refresh()}
+          style={{ marginTop: spacing.md }}
+        >
           <Text style={{ color: colors.primary }}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -334,7 +336,7 @@ export default function TaskListScreen() {
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         refreshing={isLoading && tasks.length > 0}
-        onRefresh={refresh}
+        onRefresh={() => void refresh()}
         ListEmptyComponent={
           !isLoading ? (
             <EmptyState

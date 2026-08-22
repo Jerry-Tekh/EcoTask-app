@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-
 import { useUserStore } from '../store/userStore';
 import { useWalletStore } from '../store/walletStore';
 import { useStellarWallet } from '../hooks/useStellarWallet';
@@ -148,8 +147,8 @@ export default function ProfileScreen() {
           label="Notification Preferences"
           onPress={() => navigation.navigate('NotificationPreferences')}
         />
-        <SettingsRow label="Language" value="English" onPress={() => {}} />
-        <SettingsRow label="About EcoTask" onPress={() => {}} />
+        <SettingsRow label="Language" value="English" />
+        <SettingsRow label="About EcoTask" />
 
         <TouchableOpacity
           onPress={() => {
@@ -180,7 +179,7 @@ function SettingsRow({
 }: {
   label: string;
   value?: string;
-  onPress: () => void;
+  onPress?: () => void;
 }) {
   return (
     <TouchableOpacity

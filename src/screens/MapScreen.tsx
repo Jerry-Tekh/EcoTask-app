@@ -271,7 +271,10 @@ export default function MapScreen() {
             />
           )}
           {error != null && (
-            <TouchableOpacity onPress={refresh} style={styles.retryBtn}>
+            <TouchableOpacity
+              onPress={() => void refresh()}
+              style={styles.retryBtn}
+            >
               <Text style={styles.retryText}>Retry</Text>
             </TouchableOpacity>
           )}

@@ -12,6 +12,17 @@ import {
 import { useProofSyncStore } from '../store/proofSyncStore';
 import { useNetworkStatus } from './useNetworkStatus';
 
+/**
+ * A submission failure with the IPFS CIDs obtained before the failure (if
+ * any) attached, so callers can persist them with the queued proof instead
+ * of re-pinning on retry.
+ */
+interface ProofUploadError extends Error {
+  photoCid?: string;
+  metadataCid?: string;
+  ipfsPending?: boolean;
+}
+
 export type ProofSubmitResult =
   | {
       status: 'success';
@@ -139,6 +150,7 @@ export function useProofSubmit() {
     async (
       taskId: string,
       photoUri: string,
+      capturedAt: string,
       opts?: {
         lat?: number;
         lng?: number;
@@ -164,11 +176,16 @@ export function useProofSubmit() {
         formData.append('lng', String(opts.lng));
       }
 
+      interface ReactNativeFilePart {
+        uri: string;
+        type: string;
+        name: string;
+      }
       formData.append('photos', {
         uri: photoUri,
         type: 'image/jpeg',
         name: 'proof.jpg',
-      } as any);
+      } as ReactNativeFilePart as unknown as Blob);
 
       if (photoCid) {
         formData.append('ipfsPhotoCid', photoCid);
@@ -182,10 +199,11 @@ export function useProofSubmit() {
         return { result, ipfsPending };
       } catch (err) {
         // attach the generated cids so callers can persist them
-        (err as any).photoCid = photoCid;
-        (err as any).metadataCid = metadataCid;
-        (err as any).ipfsPending = ipfsPending;
-        throw err;
+        const uploadError = err as ProofUploadError;
+        uploadError.photoCid = photoCid;
+        uploadError.metadataCid = metadataCid;
+        uploadError.ipfsPending = ipfsPending;
+        throw uploadError;
       }
     },
     [],
@@ -207,7 +225,10 @@ export function useProofSubmit() {
       try {
         setProgress('verifying');
         const { result, ipfsPending: attemptIpfsPending } =
-          await submitProofAttempt(taskId, photoUri, { lat, lng });
+          await submitProofAttempt(taskId, photoUri, capturedAt, {
+            lat,
+            lng,
+          });
         if (attemptIpfsPending) {
           setIpfsPending(true);
         }
@@ -232,8 +253,9 @@ export function useProofSubmit() {
           ...(attemptIpfsPending ? { ipfsPending: true } : {}),
         };
       } catch (err) {
-        const message = (err as any)?.message || 'Upload failed';
-        const ipfsPending = (err as any)?.ipfsPending || false;
+        const uploadError = err as ProofUploadError;
+        const message = uploadError.message || 'Upload failed';
+        const ipfsPending = uploadError.ipfsPending || false;
         try {
           enqueueProof({
             id: `${Date.now()}`,
@@ -243,8 +265,8 @@ export function useProofSubmit() {
             lng,
             createdAt: new Date().toISOString(),
             capturedAt,
-            photoCid: (err as any)?.photoCid,
-            metadataCid: (err as any)?.metadataCid,
+            photoCid: uploadError.photoCid,
+            metadataCid: uploadError.metadataCid,
           });
           if (ipfsPending) {
             setIpfsPending(true);
@@ -260,8 +282,9 @@ export function useProofSubmit() {
           };
         } catch (queueError) {
           const failureMessage =
-            (queueError as any)?.message ||
-            `Upload failed and could not be saved: ${message}`;
+            queueError instanceof Error
+              ? queueError.message
+              : `Upload failed and could not be saved: ${message}`;
           setError(failureMessage);
           setProgress('failed');
           return {
@@ -301,19 +324,24 @@ export function useProofSubmit() {
       const remaining: PendingProof[] = [];
       for (const proof of pending) {
         try {
-          await submitProofAttempt(proof.taskId, proof.photoPath, {
-            lat: (proof as any).lat,
-            lng: (proof as any).lng,
-            photoCid: (proof as any).photoCid,
-            metadataCid: (proof as any).metadataCid,
-          });
+          await submitProofAttempt(
+            proof.taskId,
+            proof.photoPath,
+            proof.capturedAt,
+            {
+              lat: proof.lat,
+              lng: proof.lng,
+              photoCid: proof.photoCid,
+              metadataCid: proof.metadataCid,
+            },
+          );
         } catch (err) {
+          const uploadError = err as ProofUploadError;
           remaining.push({
             ...proof,
-            photoCid: (err as any)?.photoCid || (proof as any).photoCid,
-            metadataCid:
-              (err as any)?.metadataCid || (proof as any).metadataCid,
-          } as PendingProof);
+            photoCid: uploadError.photoCid || proof.photoCid,
+            metadataCid: uploadError.metadataCid || proof.metadataCid,
+          });
         }
       }
       saveQueue(remaining);

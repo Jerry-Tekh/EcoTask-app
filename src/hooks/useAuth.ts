@@ -17,6 +17,10 @@ interface FreighterWindow {
   };
 }
 
+// React Native has no DOM `window`; Freighter (browser extension) only
+// exists when this code happens to run in a web context.
+declare const window: FreighterWindow;
+
 export function useAuth() {
   const { setProfile, setToken, logout } = useUserStore();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -41,11 +45,11 @@ export function useAuth() {
           // Opens Lobstr; suspends until deep-link callback resolves.
           signature = await openLobstrForSigning(challenge, publicKey);
         } else {
-          const freighter = (
-            typeof (globalThis as any).window !== 'undefined'
-              ? (globalThis as any).window
-              : ({} as FreighterWindow)
-          ).freighter;
+          // `typeof window` is safe to reference even where no global
+          // `window` is declared (native platforms); a direct reference
+          // is not.
+          const freighter =
+            typeof window !== 'undefined' ? window.freighter : undefined;
 
           if (freighter?.signTransaction) {
             signature = await freighter.signTransaction(challenge);
@@ -103,8 +107,8 @@ export function useAuth() {
         });
 
         return { token, user };
-      } catch (err: any) {
-        setError(err.message || 'Authentication failed');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Authentication failed');
         throw err;
       } finally {
         setIsAuthenticating(false);
