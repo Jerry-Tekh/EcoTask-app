@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { colors, spacing } from '../utils/theme';
 import Skeleton from './LoadingSkeleton';
 import { useWalletStore, PAYMENTS_CACHE_TTL_MS } from '../store/walletStore';
-import { StellarPayment } from '../services/stellar';
 
 interface TransactionHistoryProps {
   publicKey: string;
@@ -37,9 +36,6 @@ export default function TransactionHistory({
   publicKey,
 }: TransactionHistoryProps) {
   const payments = useWalletStore(state => state.payments);
-  const paymentsLastFetchedAt = useWalletStore(
-    state => state.paymentsLastFetchedAt,
-  );
   const refreshPayments = useWalletStore(state => state.refreshPayments);
 
   const [error, setError] = useState<string | null>(null);

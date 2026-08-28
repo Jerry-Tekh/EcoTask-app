@@ -1,6 +1,5 @@
 import './__mocks__/rn-modules';
 import { Horizon } from '@stellar/stellar-sdk';
-import { getPayments, StellarPayment } from '../services/stellar';
 import { useWalletStore, PAYMENTS_CACHE_TTL_MS } from '../store/walletStore';
 
 type PaymentsCall = Horizon.Server['payments'];
@@ -102,7 +101,7 @@ describe('walletStore payments cache', () => {
   });
 
   it('preserves existing cache on network failure', async () => {
-    const callMock = mockPayments([{ id: '1', amount: '10' }]);
+    mockPayments([{ id: '1', amount: '10' }]);
     useWalletStore.getState().connect('GABC');
 
     const { refreshPayments } = useWalletStore.getState();
@@ -131,7 +130,16 @@ describe('walletStore payments cache', () => {
     const { setPayments } = useWalletStore.getState();
 
     const before = useWalletStore.getState().paymentsLastFetchedAt;
-    setPayments([{ id: '1', amount: '5', type: 'payment', from: 'GA', to: 'GB', created_at: new Date().toISOString() }]);
+    setPayments([
+      {
+        id: '1',
+        amount: '5',
+        type: 'payment',
+        from: 'GA',
+        to: 'GB',
+        created_at: new Date().toISOString(),
+      },
+    ]);
     const after = useWalletStore.getState().paymentsLastFetchedAt;
 
     expect(before).toBeNull();

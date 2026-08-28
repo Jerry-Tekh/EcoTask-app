@@ -79,7 +79,7 @@ describe('TransactionHistory cache behavior', () => {
     });
 
     expect(getPayments).toHaveBeenCalledTimes(1);
-    expect(textValues(tree!).toContain('Recent Transactions'));
+    expect(textValues(tree!).toContain('Recent Transactions');
     expect(textValues(tree!).toContain('1.00');
   });
 
@@ -101,7 +101,7 @@ describe('TransactionHistory cache behavior', () => {
     });
 
     expect(getPayments).toHaveBeenCalledTimes(1);
-    expect(textValues(tree!).toContain('1.00'));
+    expect(textValues(tree!).toContain('1.00');
   });
 
   it('fetches again after the cache TTL expires', async () => {
@@ -127,7 +127,7 @@ describe('TransactionHistory cache behavior', () => {
     });
 
     expect(getPayments).toHaveBeenCalledTimes(2);
-    expect(textValues(tree!).toContain('2.00'));
+    expect(textValues(tree!).toContain('2.00');
   });
 
   it('manual refresh triggers a fresh call even within TTL', async () => {
@@ -145,7 +145,7 @@ describe('TransactionHistory cache behavior', () => {
     });
 
     expect(getPayments).toHaveBeenCalledTimes(2);
-    expect(textValues(tree!).toContain('2.00'));
+    expect(textValues(tree!).toContain('2.00');
   });
 
   it('shows error and retry when fetch fails', async () => {

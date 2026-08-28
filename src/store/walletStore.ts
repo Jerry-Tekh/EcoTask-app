@@ -80,7 +80,13 @@ const clearedWalletFields = {
   paymentsLastFetchedAt: null,
 } satisfies Pick<
   WalletState,
-  'publicKey' | 'balance' | 'ecoBalance' | 'usdcBalance' | 'walletType' | 'payments' | 'paymentsLastFetchedAt'
+  | 'publicKey'
+  | 'balance'
+  | 'ecoBalance'
+  | 'usdcBalance'
+  | 'walletType'
+  | 'payments'
+  | 'paymentsLastFetchedAt'
 >;
 
 /**
